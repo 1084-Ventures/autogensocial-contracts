@@ -1,0 +1,194 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://autogensocial.com/schemas/brand.json",
+  "title": "Brand",
+  "description": "Schema for brand configuration in the AutoGenSocial platform",
+  "type": "object",
+  "required": ["id", "name", "industry"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the brand",
+      "pattern": "^[a-zA-Z0-9-_]+$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Brand name",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "industry": {
+      "type": "string",
+      "description": "Industry or sector the brand operates in",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the brand",
+      "maxLength": 1000
+    },
+    "voiceAndTone": {
+      "type": "object",
+      "description": "Brand voice and tone guidelines",
+      "properties": {
+        "voice": {
+          "type": "string",
+          "description": "The brand's voice characteristics (e.g., professional, casual, witty)",
+          "maxLength": 500
+        },
+        "tone": {
+          "type": "string",
+          "description": "The tone to use in communications",
+          "maxLength": 500
+        },
+        "keywords": {
+          "type": "array",
+          "description": "Key terms and phrases associated with the brand",
+          "items": {
+            "type": "string",
+            "maxLength": 50
+          }
+        },
+        "avoidWords": {
+          "type": "array",
+          "description": "Words or phrases to avoid in content",
+          "items": {
+            "type": "string",
+            "maxLength": 50
+          }
+        }
+      }
+    },
+    "targetAudience": {
+      "type": "object",
+      "description": "Target audience demographics and characteristics",
+      "properties": {
+        "demographics": {
+          "type": "object",
+          "properties": {
+            "ageRange": {
+              "type": "string",
+              "description": "Target age range (e.g., '18-35')"
+            },
+            "locations": {
+              "type": "array",
+              "description": "Target geographic locations",
+              "items": {
+                "type": "string"
+              }
+            },
+            "interests": {
+              "type": "array",
+              "description": "Target audience interests",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "visualIdentity": {
+      "type": "object",
+      "description": "Visual branding guidelines",
+      "properties": {
+        "logoUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the brand logo"
+        },
+        "primaryColor": {
+          "type": "string",
+          "description": "Primary brand color (hex code)",
+          "pattern": "^#[0-9A-Fa-f]{6}$"
+        },
+        "secondaryColors": {
+          "type": "array",
+          "description": "Secondary brand colors (hex codes)",
+          "items": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          }
+        },
+        "fonts": {
+          "type": "array",
+          "description": "Brand fonts",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "socialMediaAccounts": {
+      "type": "array",
+      "description": "Connected social media accounts",
+      "items": {
+        "type": "object",
+        "required": ["platform", "handle"],
+        "properties": {
+          "platform": {
+            "type": "string",
+            "enum": ["twitter", "facebook", "instagram", "linkedin", "tiktok", "youtube"],
+            "description": "Social media platform"
+          },
+          "handle": {
+            "type": "string",
+            "description": "Account handle or username"
+          },
+          "accountId": {
+            "type": "string",
+            "description": "Platform-specific account ID"
+          }
+        }
+      }
+    },
+    "contentGuidelines": {
+      "type": "object",
+      "description": "Content creation guidelines",
+      "properties": {
+        "postingFrequency": {
+          "type": "object",
+          "properties": {
+            "daily": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of posts per day"
+            },
+            "weekly": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of posts per week"
+            }
+          }
+        },
+        "contentTypes": {
+          "type": "array",
+          "description": "Preferred content types",
+          "items": {
+            "type": "string",
+            "enum": ["text", "image", "video", "carousel", "story", "reel"]
+          }
+        },
+        "hashtags": {
+          "type": "array",
+          "description": "Brand hashtags",
+          "items": {
+            "type": "string",
+            "pattern": "^#[a-zA-Z0-9_]+$"
+          }
+        }
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the brand was created"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the brand was last updated"
+    }
+  }
+}

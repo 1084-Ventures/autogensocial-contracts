@@ -1,0 +1,593 @@
+openapi: 3.0.3
+info:
+  title: Publisher API
+  description: |
+    API for publishing and scheduling social media posts across multiple platforms.
+    This service handles authentication with social platforms, post scheduling, and publishing.
+  version: 1.0.0
+  contact:
+    name: AutoGenSocial Team
+    email: support@autogensocial.com
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://publisher.autogensocial.com/v1
+    description: Production server
+  - url: https://staging-publisher.autogensocial.com/v1
+    description: Staging server
+  - url: http://localhost:8082/v1
+    description: Local development server
+
+tags:
+  - name: publishing
+    description: Post publishing operations
+  - name: scheduling
+    description: Post scheduling operations
+  - name: platforms
+    description: Platform connection management
+  - name: analytics
+    description: Post performance analytics
+  - name: health
+    description: Service health and status monitoring
+
+paths:
+  /publish:
+    post:
+      tags:
+        - publishing
+      summary: Publish post
+      description: Publish a post immediately to one or more social media platforms
+      operationId: publishPost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - postId
+                - platforms
+              properties:
+                postId:
+                  type: string
+                  description: ID of the post to publish
+                platforms:
+                  type: array
+                  description: Target platforms for publishing
+                  minItems: 1
+                  items:
+                    type: string
+                    enum: [twitter, facebook, instagram, linkedin, tiktok, youtube]
+                publishOptions:
+                  type: object
+                  properties:
+                    twitter:
+                      type: object
+                      properties:
+                        asThread:
+                          type: boolean
+                          description: Publish as a thread
+                        replyToTweetId:
+                          type: string
+                          description: Reply to specific tweet
+                    instagram:
+                      type: object
+                      properties:
+                        location:
+                          type: string
+                          description: Location tag
+                        altText:
+                          type: string
+                          description: Alternative text for accessibility
+                    facebook:
+                      type: object
+                      properties:
+                        targetingOptions:
+                          type: object
+                          description: Audience targeting options
+      responses:
+        '200':
+          description: Post published successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  publishResults:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        platform:
+                          type: string
+                        status:
+                          type: string
+                          enum: [success, failed, pending]
+                        platformPostId:
+                          type: string
+                          description: Platform-specific post ID
+                        permalink:
+                          type: string
+                          format: uri
+                          description: Link to the published post
+                        publishedAt:
+                          type: string
+                          format: date-time
+                        error:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: []
+
+  /schedule:
+    post:
+      tags:
+        - scheduling
+      summary: Schedule post
+      description: Schedule a post for future publication
+      operationId: schedulePost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - postId
+                - scheduledTime
+                - platforms
+              properties:
+                postId:
+                  type: string
+                scheduledTime:
+                  type: string
+                  format: date-time
+                  description: When to publish the post
+                timezone:
+                  type: string
+                  description: Timezone for scheduling (IANA format)
+                  default: UTC
+                platforms:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+                    enum: [twitter, facebook, instagram, linkedin, tiktok, youtube]
+                publishOptions:
+                  type: object
+                  description: Platform-specific publishing options
+      responses:
+        '201':
+          description: Post scheduled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  scheduleId:
+                    type: string
+                  postId:
+                    type: string
+                  scheduledTime:
+                    type: string
+                    format: date-time
+                  status:
+                    type: string
+                    enum: [scheduled, cancelled]
+                  platforms:
+                    type: array
+                    items:
+                      type: string
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+      security:
+        - bearerAuth: []
+
+  /schedules:
+    get:
+      tags:
+        - scheduling
+      summary: List scheduled posts
+      description: Get all scheduled posts
+      operationId: listScheduledPosts
+      parameters:
+        - name: brandId
+          in: query
+          schema:
+            type: string
+        - name: platform
+          in: query
+          schema:
+            type: string
+            enum: [twitter, facebook, instagram, linkedin, tiktok, youtube]
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  schedules:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        scheduleId:
+                          type: string
+                        postId:
+                          type: string
+                        scheduledTime:
+                          type: string
+                          format: date-time
+                        status:
+                          type: string
+                        platforms:
+                          type: array
+                          items:
+                            type: string
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+      security:
+        - bearerAuth: []
+
+  /schedules/{scheduleId}:
+    get:
+      tags:
+        - scheduling
+      summary: Get schedule details
+      operationId: getScheduleById
+      parameters:
+        - name: scheduleId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  scheduleId:
+                    type: string
+                  postId:
+                    type: string
+                  scheduledTime:
+                    type: string
+                    format: date-time
+                  status:
+                    type: string
+                  platforms:
+                    type: array
+                    items:
+                      type: string
+      security:
+        - bearerAuth: []
+    
+    delete:
+      tags:
+        - scheduling
+      summary: Cancel scheduled post
+      description: Cancel a scheduled post
+      operationId: cancelSchedule
+      parameters:
+        - name: scheduleId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Schedule cancelled successfully
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - bearerAuth: []
+
+  /platforms/connect:
+    post:
+      tags:
+        - platforms
+      summary: Connect platform
+      description: Connect a social media platform account
+      operationId: connectPlatform
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - platform
+                - brandId
+              properties:
+                platform:
+                  type: string
+                  enum: [twitter, facebook, instagram, linkedin, tiktok, youtube]
+                brandId:
+                  type: string
+                authCode:
+                  type: string
+                  description: OAuth authorization code
+                redirectUri:
+                  type: string
+                  format: uri
+                  description: OAuth redirect URI
+      responses:
+        '200':
+          description: Platform connected successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connectionId:
+                    type: string
+                  platform:
+                    type: string
+                  accountHandle:
+                    type: string
+                  accountId:
+                    type: string
+                  connectedAt:
+                    type: string
+                    format: date-time
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+      security:
+        - bearerAuth: []
+
+  /platforms/connections:
+    get:
+      tags:
+        - platforms
+      summary: List platform connections
+      description: Get all connected platform accounts
+      operationId: listPlatformConnections
+      parameters:
+        - name: brandId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connections:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        connectionId:
+                          type: string
+                        platform:
+                          type: string
+                        accountHandle:
+                          type: string
+                        accountId:
+                          type: string
+                        status:
+                          type: string
+                          enum: [active, expired, error]
+                        connectedAt:
+                          type: string
+                          format: date-time
+                        expiresAt:
+                          type: string
+                          format: date-time
+      security:
+        - bearerAuth: []
+
+  /platforms/connections/{connectionId}:
+    delete:
+      tags:
+        - platforms
+      summary: Disconnect platform
+      description: Disconnect a platform account
+      operationId: disconnectPlatform
+      parameters:
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Platform disconnected successfully
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - bearerAuth: []
+
+  /analytics/posts/{postId}:
+    get:
+      tags:
+        - analytics
+      summary: Get post analytics
+      description: Retrieve performance analytics for a published post
+      operationId: getPostAnalytics
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: platform
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [twitter, facebook, instagram, linkedin, tiktok, youtube]
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  postId:
+                    type: string
+                  platform:
+                    type: string
+                  platformPostId:
+                    type: string
+                  publishedAt:
+                    type: string
+                    format: date-time
+                  metrics:
+                    type: object
+                    properties:
+                      impressions:
+                        type: integer
+                      reach:
+                        type: integer
+                      likes:
+                        type: integer
+                      comments:
+                        type: integer
+                      shares:
+                        type: integer
+                      clicks:
+                        type: integer
+                      engagementRate:
+                        type: number
+                      videoViews:
+                        type: integer
+                  lastUpdatedAt:
+                    type: string
+                    format: date-time
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - bearerAuth: []
+
+  /health:
+    get:
+      tags:
+        - health
+      summary: Health check
+      description: Check API health and platform connectivity status
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded, unhealthy]
+                  timestamp:
+                    type: string
+                    format: date-time
+                  platformStatus:
+                    type: object
+                    properties:
+                      twitter:
+                        type: string
+                        enum: [operational, degraded, down]
+                      facebook:
+                        type: string
+                        enum: [operational, degraded, down]
+                      instagram:
+                        type: string
+                        enum: [operational, degraded, down]
+                      linkedin:
+                        type: string
+                        enum: [operational, degraded, down]
+                      tiktok:
+                        type: string
+                        enum: [operational, degraded, down]
+                      youtube:
+                        type: string
+                        enum: [operational, degraded, down]
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    BadRequestError:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
