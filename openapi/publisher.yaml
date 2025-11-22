@@ -28,6 +28,8 @@ tags:
     description: Platform connection management
   - name: analytics
     description: Post performance analytics
+  - name: health
+    description: Service health and status monitoring
 
 paths:
   /publish:
@@ -507,7 +509,7 @@ paths:
   /health:
     get:
       tags:
-        - platforms
+        - health
       summary: Health check
       description: Check API health and platform connectivity status
       operationId: healthCheck
@@ -538,6 +540,12 @@ paths:
                         type: string
                         enum: [operational, degraded, down]
                       linkedin:
+                        type: string
+                        enum: [operational, degraded, down]
+                      tiktok:
+                        type: string
+                        enum: [operational, degraded, down]
+                      youtube:
                         type: string
                         enum: [operational, degraded, down]
 

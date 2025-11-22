@@ -477,15 +477,24 @@ components:
   schemas:
     Brand:
       type: object
-      description: Brand configuration schema
+      description: Brand configuration schema - see schemas/brand.json for full definition
+      externalDocs:
+        description: Full JSON Schema
+        url: https://github.com/1084-Ventures/autogensocial-contracts/blob/main/schemas/brand.json
     
     PostPlan:
       type: object
-      description: Post plan schema
+      description: Post plan schema - see schemas/postPlan.json for full definition
+      externalDocs:
+        description: Full JSON Schema
+        url: https://github.com/1084-Ventures/autogensocial-contracts/blob/main/schemas/postPlan.json
     
     Post:
       type: object
-      description: Social media post schema
+      description: Social media post schema - see schemas/post.json for full definition
+      externalDocs:
+        description: Full JSON Schema
+        url: https://github.com/1084-Ventures/autogensocial-contracts/blob/main/schemas/post.json
     
     Pagination:
       type: object
