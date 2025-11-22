@@ -1,0 +1,541 @@
+openapi: 3.0.3
+info:
+  title: Content API
+  description: |
+    API for managing content generation and planning in the AutoGenSocial platform.
+    This API provides endpoints for creating, managing, and organizing social media content.
+  version: 1.0.0
+  contact:
+    name: AutoGenSocial Team
+    email: support@autogensocial.com
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://api.autogensocial.com/v1
+    description: Production server
+  - url: https://staging-api.autogensocial.com/v1
+    description: Staging server
+  - url: http://localhost:8080/v1
+    description: Local development server
+
+tags:
+  - name: brands
+    description: Brand management operations
+  - name: post-plans
+    description: Post plan and campaign management
+  - name: posts
+    description: Social media post management
+  - name: content-generation
+    description: AI-powered content generation
+
+paths:
+  /brands:
+    get:
+      tags:
+        - brands
+      summary: List all brands
+      description: Retrieve a list of all brands for the authenticated user
+      operationId: listBrands
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  brands:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Brand'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: []
+    
+    post:
+      tags:
+        - brands
+      summary: Create a new brand
+      description: Create a new brand configuration
+      operationId: createBrand
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Brand'
+      responses:
+        '201':
+          description: Brand created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      security:
+        - bearerAuth: []
+
+  /brands/{brandId}:
+    get:
+      tags:
+        - brands
+      summary: Get brand by ID
+      description: Retrieve a specific brand by its ID
+      operationId: getBrandById
+      parameters:
+        - name: brandId
+          in: path
+          required: true
+          description: Brand identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - bearerAuth: []
+    
+    put:
+      tags:
+        - brands
+      summary: Update brand
+      description: Update an existing brand
+      operationId: updateBrand
+      parameters:
+        - name: brandId
+          in: path
+          required: true
+          description: Brand identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Brand'
+      responses:
+        '200':
+          description: Brand updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - bearerAuth: []
+    
+    delete:
+      tags:
+        - brands
+      summary: Delete brand
+      description: Delete a brand and all associated content
+      operationId: deleteBrand
+      parameters:
+        - name: brandId
+          in: path
+          required: true
+          description: Brand identifier
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Brand deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+      security:
+        - bearerAuth: []
+
+  /post-plans:
+    get:
+      tags:
+        - post-plans
+      summary: List post plans
+      description: Retrieve a list of post plans
+      operationId: listPostPlans
+      parameters:
+        - name: brandId
+          in: query
+          description: Filter by brand ID
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: [draft, active, paused, completed, cancelled]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  postPlans:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PostPlan'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+      security:
+        - bearerAuth: []
+    
+    post:
+      tags:
+        - post-plans
+      summary: Create post plan
+      description: Create a new post plan
+      operationId: createPostPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPlan'
+      responses:
+        '201':
+          description: Post plan created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostPlan'
+      security:
+        - bearerAuth: []
+
+  /post-plans/{planId}:
+    get:
+      tags:
+        - post-plans
+      summary: Get post plan
+      operationId: getPostPlanById
+      parameters:
+        - name: planId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostPlan'
+      security:
+        - bearerAuth: []
+
+  /posts:
+    get:
+      tags:
+        - posts
+      summary: List posts
+      description: Retrieve a list of posts
+      operationId: listPosts
+      parameters:
+        - name: brandId
+          in: query
+          schema:
+            type: string
+        - name: postPlanId
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, pending_approval, approved, scheduled, published, failed, cancelled]
+        - name: platform
+          in: query
+          schema:
+            type: string
+            enum: [twitter, facebook, instagram, linkedin, tiktok, youtube]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+      security:
+        - bearerAuth: []
+    
+    post:
+      tags:
+        - posts
+      summary: Create post
+      description: Create a new social media post
+      operationId: createPost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Post'
+      responses:
+        '201':
+          description: Post created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+      security:
+        - bearerAuth: []
+
+  /posts/{postId}:
+    get:
+      tags:
+        - posts
+      summary: Get post
+      operationId: getPostById
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+      security:
+        - bearerAuth: []
+    
+    put:
+      tags:
+        - posts
+      summary: Update post
+      operationId: updatePost
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Post'
+      responses:
+        '200':
+          description: Post updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+      security:
+        - bearerAuth: []
+
+  /posts/{postId}/approve:
+    post:
+      tags:
+        - posts
+      summary: Approve post
+      description: Approve a post for publishing
+      operationId: approvePost
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Post approved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+      security:
+        - bearerAuth: []
+
+  /content/generate:
+    post:
+      tags:
+        - content-generation
+      summary: Generate content
+      description: Generate social media content using AI
+      operationId: generateContent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - brandId
+                - platform
+                - contentType
+              properties:
+                brandId:
+                  type: string
+                platform:
+                  type: string
+                  enum: [twitter, facebook, instagram, linkedin, tiktok, youtube]
+                contentType:
+                  type: string
+                  enum: [text, image, video, carousel]
+                theme:
+                  type: string
+                prompt:
+                  type: string
+                  description: Custom prompt for content generation
+                count:
+                  type: integer
+                  default: 1
+                  minimum: 1
+                  maximum: 10
+      responses:
+        '200':
+          description: Content generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  generatedContent:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        text:
+                          type: string
+                        hashtags:
+                          type: array
+                          items:
+                            type: string
+                        imagePrompt:
+                          type: string
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    Brand:
+      type: object
+      description: Brand configuration schema
+    
+    PostPlan:
+      type: object
+      description: Post plan schema
+    
+    Post:
+      type: object
+      description: Social media post schema
+    
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+    
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    BadRequestError:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
