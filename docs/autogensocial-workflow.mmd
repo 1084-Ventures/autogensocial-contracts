@@ -1,0 +1,80 @@
+sequenceDiagram
+    participant Cron as Cron Job
+    participant ContentAPI as Content API
+    participant DB as Database
+    participant PlanAgent as Planning Agent
+    participant ContentAgent as Content Agent
+    participant ImageAgent as Image Agent
+    participant ComposerAgent as Composer Agent
+    participant ImageComposer as Image Composer Service
+    participant Publisher as Publisher Service
+    participant Platforms as Social Platforms
+
+    Note over Cron: Runs every 15 minutes
+    
+    Cron->>ContentAPI: Check due post plans
+    ContentAPI->>DB: Query post plans by schedule
+    DB-->>ContentAPI: Return due plans
+    
+    alt Plans found
+        ContentAPI->>PlanAgent: Process due plans
+        
+        loop For each brand/plan
+            Note over PlanAgent: Load brand guidelines
+            PlanAgent->>DB: Get brand data
+            DB-->>PlanAgent: Return brand info
+            
+            PlanAgent->>ContentAgent: Generate post content
+            Note over ContentAgent: Create text using brand voice
+            ContentAgent->>ContentAgent: Generate text content
+            ContentAgent->>ContentAgent: Add hashtags & mentions
+            
+            alt Content generation successful
+                ContentAgent->>ImageAgent: Generate/retrieve images
+                Note over ImageAgent: Create or source raw images
+                ImageAgent->>ImageAgent: Generate/retrieve background images
+                ImageAgent->>ImageAgent: Retrieve brand assets (logos, etc.)
+                
+                alt Image sourcing successful
+                    ImageAgent->>ComposerAgent: Compose final post images
+                    Note over ComposerAgent: Structure canvas, images, texts JSON<br/>for Pillow composition
+                    ComposerAgent->>ImageComposer: POST /images/compose<br/>{canvas, images[], texts[], brand}
+                    Note over ImageComposer: Python Pillow layering<br/>and text rendering
+                    ImageComposer-->>ComposerAgent: Return composed images
+                    
+                    alt Composition successful
+                        ComposerAgent->>Publisher: Prepare final post
+                        Publisher->>Publisher: Optimize for each platform
+                        
+                        loop For each target platform
+                            Publisher->>Platforms: Publish post
+                            Platforms-->>Publisher: Confirm publication
+                            
+                            alt Publication failed
+                                Publisher-->>ContentAPI: Log failure & STOP
+                                Note over ContentAPI: Fail fast - halt workflow
+                            end
+                        end
+                        
+                        Publisher-->>ContentAPI: Update post status
+                        ContentAPI->>DB: Mark as published
+                        
+                    else Composition failed
+                        ComposerAgent-->>ContentAPI: Report error & STOP
+                        Note over ContentAPI: Fail fast - halt workflow
+                    end
+                    
+                else Image sourcing failed
+                    ImageAgent-->>ContentAPI: Report error & STOP
+                    Note over ContentAPI: Fail fast - halt workflow
+                end
+                
+            else Content generation failed
+                ContentAgent-->>ContentAPI: Report error & STOP
+                Note over ContentAPI: Fail fast - halt workflow
+            end
+        end
+        
+    else No plans due
+        ContentAPI-->>Cron: No action needed
+    end

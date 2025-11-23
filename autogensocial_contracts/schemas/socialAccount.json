@@ -1,0 +1,280 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Social Account",
+  "description": "Social media account configuration and credentials",
+  "type": "object",
+  "properties": {
+    "platform": {
+      "type": "string",
+      "enum": ["instagram", "facebook", "twitter", "linkedin", "tiktok", "youtube"],
+      "description": "Social media platform name"
+    },
+    "handle": {
+      "type": "string",
+      "description": "Social media handle/username (without @ symbol)"
+    },
+    "displayName": {
+      "type": "string",
+      "description": "Display name for the account"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Direct URL to the social media profile"
+    },
+    "isActive": {
+      "type": "boolean",
+      "description": "Whether this account is actively used for posting",
+      "default": true
+    },
+    "postingPermissions": {
+      "type": "object",
+      "description": "Permissions and capabilities for this account",
+      "properties": {
+        "canPost": {
+          "type": "boolean",
+          "description": "Permission to create posts",
+          "default": false
+        },
+        "canSchedule": {
+          "type": "boolean",
+          "description": "Permission to schedule posts",
+          "default": false
+        },
+        "canDelete": {
+          "type": "boolean",
+          "description": "Permission to delete posts",
+          "default": false
+        }
+      }
+    }
+  },
+  "required": ["platform", "handle"],
+  "allOf": [
+    {
+      "if": {
+        "properties": { "platform": { "const": "instagram" } }
+      },
+      "then": {
+        "properties": {
+          "credentials": {
+            "type": "object",
+            "description": "Instagram API credentials (uses Facebook Graph API)",
+            "properties": {
+              "appId": {
+                "type": "string",
+                "description": "Facebook App ID"
+              },
+              "appSecret": {
+                "type": "string",
+                "description": "Facebook App Secret (store securely)"
+              },
+              "accessToken": {
+                "type": "string",
+                "description": "Long-lived User Access Token (store securely)"
+              },
+              "instagramBusinessAccountId": {
+                "type": "string",
+                "description": "Instagram Business Account ID"
+              },
+              "facebookPageId": {
+                "type": "string",
+                "description": "Connected Facebook Page ID"
+              }
+            },
+            "required": ["appId", "appSecret", "accessToken", "instagramBusinessAccountId"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["credentials"]
+      }
+    },
+    {
+      "if": {
+        "properties": { "platform": { "const": "facebook" } }
+      },
+      "then": {
+        "properties": {
+          "credentials": {
+            "type": "object",
+            "description": "Facebook API credentials",
+            "properties": {
+              "appId": {
+                "type": "string",
+                "description": "Facebook App ID"
+              },
+              "appSecret": {
+                "type": "string",
+                "description": "Facebook App Secret (store securely)"
+              },
+              "accessToken": {
+                "type": "string",
+                "description": "Page Access Token (store securely)"
+              },
+              "pageId": {
+                "type": "string",
+                "description": "Facebook Page ID for posting"
+              }
+            },
+            "required": ["appId", "appSecret", "accessToken", "pageId"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["credentials"]
+      }
+    },
+    {
+      "if": {
+        "properties": { "platform": { "const": "twitter" } }
+      },
+      "then": {
+        "properties": {
+          "credentials": {
+            "type": "object",
+            "description": "Twitter API credentials",
+            "properties": {
+              "apiKey": {
+                "type": "string",
+                "description": "Twitter API Key (Consumer Key)"
+              },
+              "apiSecret": {
+                "type": "string",
+                "description": "Twitter API Secret Key (Consumer Secret) (store securely)"
+              },
+              "accessToken": {
+                "type": "string",
+                "description": "Twitter Access Token (store securely)"
+              },
+              "accessTokenSecret": {
+                "type": "string",
+                "description": "Twitter Access Token Secret (store securely)"
+              },
+              "bearerToken": {
+                "type": "string",
+                "description": "Twitter Bearer Token for API v2 (store securely)"
+              }
+            },
+            "required": ["apiKey", "apiSecret", "accessToken", "accessTokenSecret"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["credentials"]
+      }
+    },
+    {
+      "if": {
+        "properties": { "platform": { "const": "linkedin" } }
+      },
+      "then": {
+        "properties": {
+          "credentials": {
+            "type": "object",
+            "description": "LinkedIn API credentials",
+            "properties": {
+              "clientId": {
+                "type": "string",
+                "description": "LinkedIn App Client ID"
+              },
+              "clientSecret": {
+                "type": "string",
+                "description": "LinkedIn App Client Secret (store securely)"
+              },
+              "accessToken": {
+                "type": "string",
+                "description": "LinkedIn Access Token (store securely)"
+              },
+              "organizationId": {
+                "type": "string",
+                "description": "LinkedIn Organization/Company Page ID (for company pages)"
+              },
+              "personId": {
+                "type": "string",
+                "description": "LinkedIn Person ID (for personal profiles)"
+              }
+            },
+            "required": ["clientId", "clientSecret", "accessToken"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["credentials"]
+      }
+    },
+    {
+      "if": {
+        "properties": { "platform": { "const": "tiktok" } }
+      },
+      "then": {
+        "properties": {
+          "credentials": {
+            "type": "object",
+            "description": "TikTok API credentials",
+            "properties": {
+              "clientKey": {
+                "type": "string",
+                "description": "TikTok App Client Key"
+              },
+              "clientSecret": {
+                "type": "string",
+                "description": "TikTok App Client Secret (store securely)"
+              },
+              "accessToken": {
+                "type": "string",
+                "description": "TikTok Access Token (store securely)"
+              },
+              "refreshToken": {
+                "type": "string",
+                "description": "TikTok Refresh Token (store securely)"
+              },
+              "openId": {
+                "type": "string",
+                "description": "TikTok Open ID for the user"
+              }
+            },
+            "required": ["clientKey", "clientSecret", "accessToken", "openId"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["credentials"]
+      }
+    },
+    {
+      "if": {
+        "properties": { "platform": { "const": "youtube" } }
+      },
+      "then": {
+        "properties": {
+          "credentials": {
+            "type": "object",
+            "description": "YouTube API credentials (Google OAuth2)",
+            "properties": {
+              "clientId": {
+                "type": "string",
+                "description": "Google OAuth2 Client ID"
+              },
+              "clientSecret": {
+                "type": "string",
+                "description": "Google OAuth2 Client Secret (store securely)"
+              },
+              "accessToken": {
+                "type": "string",
+                "description": "Google Access Token (store securely)"
+              },
+              "refreshToken": {
+                "type": "string",
+                "description": "Google Refresh Token (store securely)"
+              },
+              "channelId": {
+                "type": "string",
+                "description": "YouTube Channel ID for uploads"
+              }
+            },
+            "required": ["clientId", "clientSecret", "accessToken", "refreshToken", "channelId"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["credentials"]
+      }
+    }
+  ],
+  "additionalProperties": false
+}

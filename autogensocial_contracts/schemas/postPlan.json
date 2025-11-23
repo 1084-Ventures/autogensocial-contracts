@@ -1,0 +1,252 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PostPlan",
+  "description": "Schema for social media post planning",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the post plan"
+    },
+    "brandId": {
+      "type": "string",
+      "description": "Reference to the brand"
+    },
+    "title": {
+      "type": "string",
+      "description": "Post plan title"
+    },
+    "objective": {
+      "type": "string",
+      "description": "Marketing objective for this post plan"
+    },
+    "postType": {
+      "type": "string",
+      "enum": ["images", "video"],
+      "description": "Type of media content for the post"
+    },
+    "mediaContent": {
+      "type": "object",
+      "description": "Media content specifications",
+      "oneOf": [
+        {
+          "description": "Image-based post content",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "images"
+            },
+            "imageCount": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10,
+              "description": "Number of images (1 for single image, multiple for carousel)"
+            },
+            "orientation": {
+              "type": "string",
+              "enum": ["portrait", "landscape", "square"],
+              "description": "Image orientation/aspect ratio for all images in this post"
+            },
+            "images": {
+              "type": "array",
+              "description": "Array of image specifications",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "description": "Description of the image content"
+                  },
+                  "layout": {
+                    "type": "string",
+                    "description": "Layout specification for the image"
+                  },
+                  "textOverlay": {
+                    "type": "object",
+                    "description": "Text or comment overlay specifications",
+                    "properties": {
+                      "content": {
+                        "type": "string",
+                        "description": "Text content to overlay"
+                      },
+                      "style": {
+                        "type": "string",
+                        "description": "Style specification for the text"
+                      },
+                      "position": {
+                        "type": "string",
+                        "description": "Position of text on the image"
+                      }
+                    }
+                  }
+                },
+                "required": ["description", "layout"]
+              }
+            }
+          },
+          "required": ["type", "imageCount", "orientation", "images"]
+        },
+        {
+          "description": "Video-based post content",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "video"
+            },
+            "orientation": {
+              "type": "string",
+              "enum": ["portrait", "landscape", "square"],
+              "description": "Video orientation/aspect ratio"
+            },
+            "video": {
+              "type": "object",
+              "description": "Video specification",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "description": "Description of the video content"
+                },
+                "layout": {
+                  "type": "string",
+                  "description": "Layout specification for the video"
+                },
+                "textOverlay": {
+                  "type": "object",
+                  "description": "Text or comment overlay specifications",
+                  "properties": {
+                    "content": {
+                      "type": "string",
+                      "description": "Text content to overlay"
+                    },
+                    "style": {
+                      "type": "string",
+                      "description": "Style specification for the text"
+                    },
+                    "position": {
+                      "type": "string",
+                      "description": "Position of text on the video"
+                    }
+                  }
+                }
+              },
+              "required": ["description", "layout"]
+            }
+          },
+          "required": ["type", "orientation", "video"]
+        }
+      ]
+    },
+    "platforms": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["twitter", "facebook", "instagram", "linkedin", "tiktok"]
+      },
+      "description": "Target social media platforms"
+    },
+    "scheduling": {
+      "type": "object",
+      "description": "Post scheduling configuration",
+      "oneOf": [
+        {
+          "description": "One-time scheduled post",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "one-time"
+            },
+            "publishAt": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Specific date and time to publish"
+            }
+          },
+          "required": ["type", "publishAt"]
+        },
+        {
+          "description": "Recurring scheduled post",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "recurring"
+            },
+            "frequency": {
+              "type": "string",
+              "enum": ["daily", "weekly", "monthly"],
+              "description": "How often to repeat"
+            },
+            "time": {
+              "type": "string",
+              "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$",
+              "description": "Time of day in HH:MM format (24-hour)"
+            },
+            "dayOfWeek": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6,
+              "description": "Day of week (0=Sunday, 6=Saturday) - required for weekly frequency"
+            },
+            "dayOfMonth": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 31,
+              "description": "Day of month - required for monthly frequency"
+            },
+            "startDate": {
+              "type": "string",
+              "format": "date",
+              "description": "When to start the recurring schedule"
+            },
+            "endDate": {
+              "type": "string",
+              "format": "date",
+              "description": "When to stop the recurring schedule (optional)"
+            },
+            "nextRunDate": {
+              "type": "string",
+              "format": "date-time",
+              "description": "The next scheduled execution time (updated after each run)"
+            }
+          },
+          "required": ["type", "frequency", "time", "startDate"]
+        }
+      ]
+    },
+
+    "contentGuidelines": {
+      "type": "object",
+      "description": "Content creation guidelines",
+      "properties": {
+        "topics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tone": {
+          "type": "string"
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "approved", "scheduled", "published"],
+      "description": "Current status of the post plan"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["id", "brandId", "title", "mediaContent", "platforms", "status"]
+}

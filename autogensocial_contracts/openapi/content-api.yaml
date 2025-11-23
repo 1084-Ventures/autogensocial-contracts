@@ -1,0 +1,227 @@
+openapi: 3.0.3
+info:
+  title: Content API
+  description: API for managing social media content and post plans
+  version: 1.0.0
+  contact:
+    name: AutoGenSocial Team
+
+servers:
+  - url: https://api.autogensocial.example.com/v1
+    description: Production server
+  - url: http://localhost:7071/api
+    description: Local development server
+
+tags:
+  - name: brands
+    description: Brand management
+  - name: post-plans
+    description: Post plan management
+  - name: posts
+    description: Post management
+
+paths:
+  /brands:
+    get:
+      tags:
+        - brands
+      summary: List all brands
+      operationId: listBrands
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Brand'
+    post:
+      tags:
+        - brands
+      summary: Create a new brand
+      operationId: createBrand
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Brand'
+      responses:
+        '201':
+          description: Brand created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+
+  /brands/{brandId}:
+    get:
+      tags:
+        - brands
+      summary: Get a brand by ID
+      operationId: getBrand
+      parameters:
+        - name: brandId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Brand'
+        '404':
+          description: Brand not found
+
+  /post-plans:
+    get:
+      tags:
+        - post-plans
+      summary: List all post plans
+      operationId: listPostPlans
+      parameters:
+        - name: brandId
+          in: query
+          schema:
+            type: string
+          description: Filter by brand ID
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostPlan'
+    post:
+      tags:
+        - post-plans
+      summary: Create a new post plan
+      operationId: createPostPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostPlan'
+      responses:
+        '201':
+          description: Post plan created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostPlan'
+
+  /posts:
+    get:
+      tags:
+        - posts
+      summary: List all posts
+      operationId: listPosts
+      parameters:
+        - name: postPlanId
+          in: query
+          schema:
+            type: string
+          description: Filter by post plan ID
+        - name: brandId
+          in: query
+          schema:
+            type: string
+          description: Filter by brand ID
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+    post:
+      tags:
+        - posts
+      summary: Create a new post
+      operationId: createPost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Post'
+      responses:
+        '201':
+          description: Post created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+
+components:
+  schemas:
+    Brand:
+      type: object
+      description: Brand identity and guidelines
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+      required:
+        - id
+        - name
+
+    PostPlan:
+      type: object
+      description: Social media post planning
+      properties:
+        id:
+          type: string
+        brandId:
+          type: string
+        title:
+          type: string
+        platforms:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [draft, approved, scheduled, published]
+      required:
+        - id
+        - brandId
+        - title
+        - platforms
+        - status
+
+    Post:
+      type: object
+      description: Social media post
+      properties:
+        id:
+          type: string
+        postPlanId:
+          type: string
+        brandId:
+          type: string
+        platform:
+          type: string
+        content:
+          type: object
+        status:
+          type: string
+          enum: [draft, scheduled, published, failed]
+      required:
+        - id
+        - brandId
+        - platform
+        - content
+        - status

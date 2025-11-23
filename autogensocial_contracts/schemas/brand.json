@@ -1,0 +1,147 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Brand",
+  "description": "Schema for brand identity and guidelines",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the brand"
+    },
+    "name": {
+      "type": "string",
+      "description": "Brand name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brand description"
+    },
+    "voice": {
+      "type": "object",
+      "description": "Brand voice and tone guidelines",
+      "properties": {
+        "tone": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of tone attributes (e.g., professional, friendly, casual)"
+        },
+        "style": {
+          "type": "string",
+          "description": "Writing style guidelines"
+        }
+      }
+    },
+    "visualStyles": {
+      "type": "object",
+      "description": "Visual styling guidelines for the brand",
+      "properties": {
+        "colors": {
+          "type": "object",
+          "description": "Brand color palette",
+          "properties": {
+            "primary": {
+              "type": "string",
+              "description": "Primary brand color (hex)"
+            },
+            "secondary": {
+              "type": "string",
+              "description": "Secondary brand color (hex)"
+            },
+            "accent": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Accent colors (hex)"
+            }
+          }
+        },
+        "fonts": {
+          "type": "object",
+          "description": "Typography guidelines for the brand",
+          "properties": {
+            "heading": {
+              "type": "object",
+              "description": "Font settings for headings",
+              "properties": {
+                "family": {
+                  "type": "string",
+                  "description": "Font family name for headings"
+                },
+                "weight": {
+                  "type": "string",
+                  "description": "Font weight for headings (e.g., 'bold', '700')"
+                },
+                "style": {
+                  "type": "string",
+                  "description": "Font style for headings (e.g., 'normal', 'italic')"
+                }
+              }
+            },
+            "body": {
+              "type": "object",
+              "description": "Font settings for body text",
+              "properties": {
+                "family": {
+                  "type": "string",
+                  "description": "Font family name for body text"
+                },
+                "weight": {
+                  "type": "string",
+                  "description": "Font weight for body text (e.g., 'normal', '400')"
+                },
+                "style": {
+                  "type": "string",
+                  "description": "Font style for body text (e.g., 'normal', 'italic')"
+                }
+              }
+            },
+            "accent": {
+              "type": "object",
+              "description": "Font settings for accent/special text",
+              "properties": {
+                "family": {
+                  "type": "string",
+                  "description": "Font family name for accent text"
+                },
+                "weight": {
+                  "type": "string",
+                  "description": "Font weight for accent text"
+                },
+                "style": {
+                  "type": "string",
+                  "description": "Font style for accent text"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "socialAccounts": {
+      "type": "array",
+      "description": "Social media accounts associated with the brand",
+      "items": {
+        "$ref": "socialAccount.json"
+      }
+    },
+    "logo": {
+      "type": "object",
+      "description": "Brand logo assets",
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the logo image"
+        },
+        "variants": {
+          "type": "object",
+          "description": "Different logo variants (light, dark, etc.)"
+        }
+      }
+    }
+  },
+  "required": ["id", "name"]
+}

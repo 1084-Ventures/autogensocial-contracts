@@ -1,0 +1,316 @@
+openapi: 3.0.3
+info:
+  title: Image Composer API
+  description: API for generating and composing images for social media posts
+  version: 1.0.0
+  contact:
+    name: AutoGenSocial Team
+
+servers:
+  - url: https://image-composer.autogensocial.example.com/v1
+    description: Production server
+  - url: http://localhost:7072/api
+    description: Local development server
+
+tags:
+  - name: images
+    description: Image generation and composition
+  - name: templates
+    description: Image template management
+
+paths:
+  /images/generate:
+    post:
+      tags:
+        - images
+      summary: Generate an image using external AI service
+      operationId: generateImage
+      description: Generate images using AI prompts (delegated to external AI service like DALL-E, Midjourney, etc.)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                prompt:
+                  type: string
+                  description: Text prompt for AI image generation
+                style:
+                  type: string
+                  description: Style or theme for the image
+                dimensions:
+                  type: object
+                  properties:
+                    width:
+                      type: integer
+                    height:
+                      type: integer
+                brandId:
+                  type: string
+                  description: Brand ID to apply brand guidelines
+              required:
+                - prompt
+      responses:
+        '200':
+          description: Image generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageResult'
+        '400':
+          description: Invalid request
+
+  /images/compose:
+    post:
+      tags:
+        - images
+      summary: Compose an image using Pillow from structured elements
+      operationId: composeImage
+      description: Compose final social media images by layering images and text using Python Pillow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompositionRequest'
+      responses:
+        '200':
+          description: Image composed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageResult'
+        '400':
+          description: Invalid request - missing required fields or invalid image URLs
+        '500':
+          description: Composition failed - error processing images or text
+
+  /templates:
+    get:
+      tags:
+        - templates
+      summary: List all image templates
+      operationId: listTemplates
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ImageTemplate'
+    post:
+      tags:
+        - templates
+      summary: Create a new image template
+      operationId: createTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImageTemplate'
+      responses:
+        '201':
+          description: Template created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageTemplate'
+
+components:
+  schemas:
+    CompositionRequest:
+      type: object
+      description: Request for composing an image using Pillow
+      properties:
+        canvas:
+          type: object
+          description: Canvas configuration
+          properties:
+            width:
+              type: integer
+              description: Canvas width in pixels
+              example: 1080
+            height:
+              type: integer
+              description: Canvas height in pixels
+              example: 1350
+            backgroundColor:
+              type: string
+              description: Background color in hex format
+              example: "#FFFFFF"
+          required:
+            - width
+            - height
+            - backgroundColor
+        images:
+          type: array
+          description: Array of images to layer on the canvas
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+                format: uri
+                description: URL to the image file
+                example: "https://example.com/background.jpg"
+              x:
+                type: integer
+                description: X position on canvas
+                example: 0
+              y:
+                type: integer
+                description: Y position on canvas
+                example: 0
+              width:
+                type: integer
+                description: Image width in pixels
+                example: 1080
+              height:
+                type: integer
+                description: Image height in pixels
+                example: 1350
+              opacity:
+                type: number
+                format: float
+                description: Image opacity (0.0 to 1.0)
+                example: 1.0
+                minimum: 0
+                maximum: 1
+            required:
+              - url
+              - x
+              - y
+              - width
+              - height
+        texts:
+          type: array
+          description: Array of text elements to add to the canvas
+          items:
+            type: object
+            properties:
+              text:
+                type: string
+                description: Text content to render
+                example: "New Drop Today"
+              x:
+                type: integer
+                description: X position on canvas
+                example: 540
+              y:
+                type: integer
+                description: Y position on canvas
+                example: 150
+              fontFamily:
+                type: string
+                description: Font family name
+                example: "Montserrat-Bold"
+              fontSize:
+                type: integer
+                description: Font size in pixels
+                example: 72
+              color:
+                type: string
+                description: Text color in hex format
+                example: "#111111"
+              align:
+                type: string
+                enum: [left, center, right]
+                description: Text alignment
+                example: "center"
+            required:
+              - text
+              - x
+              - y
+              - fontFamily
+              - fontSize
+              - color
+        brand:
+          type: object
+          description: Brand and output configuration
+          properties:
+            id:
+              type: string
+              description: Brand identifier
+              example: "brand-123"
+            outputFormat:
+              type: string
+              enum: [jpg, png, webp]
+              description: Output image format
+              example: "jpg"
+            quality:
+              type: integer
+              minimum: 1
+              maximum: 100
+              description: Output image quality (1-100, for lossy formats)
+              example: 90
+          required:
+            - id
+            - outputFormat
+      required:
+        - canvas
+        - brand
+
+    ImageResult:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the generated image
+        url:
+          type: string
+          format: uri
+          description: URL to access the generated image
+        thumbnailUrl:
+          type: string
+          format: uri
+          description: URL to access thumbnail
+        metadata:
+          type: object
+          properties:
+            width:
+              type: integer
+            height:
+              type: integer
+            format:
+              type: string
+            size:
+              type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - url
+
+    ImageTemplate:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        dimensions:
+          type: object
+          properties:
+            width:
+              type: integer
+            height:
+              type: integer
+        elements:
+          type: array
+          items:
+            type: object
+        previewUrl:
+          type: string
+          format: uri
+      required:
+        - id
+        - name

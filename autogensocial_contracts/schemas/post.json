@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Post",
+  "description": "Schema for a social media post",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the post"
+    },
+    "postPlanId": {
+      "type": "string",
+      "description": "Reference to the parent post plan"
+    },
+    "brandId": {
+      "type": "string",
+      "description": "Reference to the brand"
+    },
+    "platform": {
+      "type": "string",
+      "enum": ["twitter", "facebook", "instagram", "linkedin", "tiktok"],
+      "description": "Target social media platform"
+    },
+    "content": {
+      "type": "object",
+      "description": "Post content",
+      "properties": {
+        "mainCopy": {
+          "type": "string",
+          "description": "Main post text/caption"
+        },
+        "imageCaptions": {
+          "type": "array",
+          "description": "Individual captions for each image (for carousel posts)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "imageIndex": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Index of the image this caption applies to"
+              },
+              "caption": {
+                "type": "string",
+                "description": "Caption text for this specific image"
+              }
+            },
+            "required": ["imageIndex", "caption"]
+          }
+        },
+        "comments": {
+          "type": "array",
+          "description": "Additional comments or supporting text",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hashtags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^#[a-zA-Z0-9_]+$"
+          },
+          "description": "Hashtags to include (with # prefix)"
+        }
+      },
+      "required": ["mainCopy"]
+    },
+    "media": {
+      "type": "array",
+      "description": "Media attachments",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["image", "video", "gif"]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "altText": {
+            "type": "string"
+          }
+        },
+        "required": ["type", "url"]
+      }
+    },
+    "scheduledTime": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Scheduled publication time"
+    },
+    "publishedTime": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Actual publication time"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "scheduled", "published", "failed"],
+      "description": "Current status of the post"
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Post performance metrics",
+      "properties": {
+        "impressions": {
+          "type": "integer"
+        },
+        "engagements": {
+          "type": "integer"
+        },
+        "likes": {
+          "type": "integer"
+        },
+        "shares": {
+          "type": "integer"
+        },
+        "comments": {
+          "type": "integer"
+        }
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["id", "brandId", "platform", "content", "status"]
+}

@@ -1,0 +1,103 @@
+name: Build and Test Package
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [published]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9, 3.11, 3.12]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build pytest
+        pip install -e .
+    
+    - name: Test package imports
+      run: |
+        python -c "
+        import autogensocial_contracts
+        print('Package version:', autogensocial_contracts.__version__)
+        
+        # Test model imports
+        from autogensocial_contracts import Brand, Post, PostPlan, SocialAccount
+        print('Models imported successfully')
+        
+        # Test schema loading
+        from autogensocial_contracts.schemas import get_available_schemas, load_schema
+        schemas = get_available_schemas()
+        print('Available schemas:', schemas)
+        brand_schema = load_schema('brand')
+        print('Brand schema loaded successfully')
+        
+        # Test OpenAPI loading  
+        from autogensocial_contracts.openapi import get_available_specs
+        specs = get_available_specs()
+        print('Available OpenAPI specs:', specs)
+        
+        # Test model creation
+        brand = Brand(id='test', name='Test Brand', description='Test description')
+        print('Brand model created:', brand.name)
+        "
+    
+    - name: Build package
+      run: python -m build
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist-${{ matrix.python-version }}
+        path: dist/
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Build package
+      run: python -m build
+    
+    - name: Publish to PyPI
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        twine upload dist/*
+      if: env.TWINE_PASSWORD != ''
+    
+    - name: Publish to GitHub Packages
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
+      if: env.TWINE_PASSWORD != '' && env.TWINE_USERNAME != ''
