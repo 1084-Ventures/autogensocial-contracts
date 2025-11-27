@@ -164,6 +164,11 @@ paths:
                 $ref: '#/components/schemas/Post'
 
 components:
+  securitySchemes:
+    function_key:
+      type: apiKey
+      in: header
+      name: x-functions-key
   schemas:
     Brand:
       type: object
