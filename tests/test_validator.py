@@ -48,7 +48,10 @@ class TestSchemaValidator:
         )
         
         # Both should have 'id' field with same type
-        assert is_consistent is True or len(differences) == 0 or all("Type mismatch" not in d for d in differences)
+        # Either schemas are consistent, or differences don't include type mismatches
+        if not is_consistent:
+            assert len(differences) == 0 or all("Type mismatch" not in d for d in differences), \
+                f"Found type mismatch in 'id' field: {differences}"
 
 
 class TestOpenAPIValidator:

@@ -272,26 +272,45 @@ class OpenAPIValidator:
         """
         spec = self.load_spec(spec_name)
         schemas = spec.get('components', {}).get('schemas', {})
-        invalid_refs = []
-        
-        def check_refs(obj: Any, path: str = "") -> None:
-            """Recursively check for $ref fields."""
-            if isinstance(obj, dict):
-                if '$ref' in obj:
-                    ref = obj['$ref']
-                    # Check if it's a component schema reference
-                    if ref.startswith('#/components/schemas/'):
-                        schema_name = ref.split('/')[-1]
-                        if schema_name not in schemas:
-                            invalid_refs.append(f"{path}: {ref}")
-                
-                for key, value in obj.items():
-                    check_refs(value, f"{path}.{key}" if path else key)
-            
-            elif isinstance(obj, list):
-                for i, item in enumerate(obj):
-                    check_refs(item, f"{path}[{i}]")
-        
-        check_refs(spec)
+        invalid_refs = self._find_invalid_refs(spec, schemas)
         
         return len(invalid_refs) == 0, invalid_refs
+    
+    def _find_invalid_refs(
+        self,
+        obj: Any,
+        schemas: Dict[str, Any],
+        path: str = ""
+    ) -> List[str]:
+        """
+        Recursively find invalid schema references.
+        
+        Args:
+            obj: Object to check for references
+            schemas: Valid schema definitions
+            path: Current path in the object tree
+            
+        Returns:
+            List of invalid reference paths
+        """
+        invalid_refs = []
+        
+        if isinstance(obj, dict):
+            if '$ref' in obj:
+                ref = obj['$ref']
+                # Check if it's a component schema reference
+                if ref.startswith('#/components/schemas/'):
+                    schema_name = ref.split('/')[-1]
+                    if schema_name not in schemas:
+                        invalid_refs.append(f"{path}: {ref}")
+            
+            for key, value in obj.items():
+                new_path = f"{path}.{key}" if path else key
+                invalid_refs.extend(self._find_invalid_refs(value, schemas, new_path))
+        
+        elif isinstance(obj, list):
+            for i, item in enumerate(obj):
+                new_path = f"{path}[{i}]"
+                invalid_refs.extend(self._find_invalid_refs(item, schemas, new_path))
+        
+        return invalid_refs

@@ -341,10 +341,13 @@ export class {class_name} {{
         if query_params:
             params.extend([f"{p}?: string" for p in query_params])
         
-        params_str = params[0] if len(params) == 1 else (
-            f"{{\n    {',\n    '.join(params)}\n  }}: {{\n    {'; '.join(params)};\n  }}"
-            if len(params) > 1 else ""
-        )
+        # Format parameters for TypeScript method signature
+        if len(params) == 0:
+            params_str = ""
+        elif len(params) == 1:
+            params_str = params[0]
+        else:
+            params_str = f"{{\n    {',\n    '.join(params)}\n  }}: {{\n    {'; '.join(params)};\n  }}"
         
         # Build URL
         url_path = path
