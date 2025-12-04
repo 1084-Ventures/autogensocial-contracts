@@ -8,24 +8,48 @@ This repository contains the contract specifications for the AutoGenSocial platf
 
 - **JSON Schemas**: Data models for brands, post plans, and posts
 - **OpenAPI Specifications**: REST API definitions for all microservices
-- **Prompts**: AI prompt templates for content generation
+- **Pydantic Models**: Auto-generated Python models from JSON schemas
+- **Code Generators**: Utilities to generate CRUD operations and API clients
+- **Validators**: Tools to ensure schema and API consistency
 - **Documentation**: Integration guides and best practices
 
 These contracts serve as the source of truth for all services in the AutoGenSocial ecosystem, ensuring consistent data structures and API interfaces across all components.
+
+## ✨ Key Features
+
+- 🔄 **Auto-generate CRUD Operations**: Generate database operations in Python, TypeScript, or SQL from JSON schemas
+- 🌐 **Auto-generate API Clients**: Create type-safe API clients from OpenAPI specifications
+- ✅ **Schema Validation**: Validate JSON schemas and OpenAPI specs for consistency
+- 📦 **Exportable Package**: Install as a Python package for use in other projects
+- 🎨 **Multiple Output Formats**: Support for Python, TypeScript, and SQL generation
 
 ## 🏗️ Repository Structure
 
 ```
 autogensocial-contracts/
-├── schemas/              # JSON Schema definitions
-│   ├── brand.json        # Brand configuration schema
-│   ├── postPlan.json     # Content planning schema
-│   └── post.json         # Social media post schema
-├── openapi/              # OpenAPI 3.0 specifications
-│   ├── content-api.yaml  # Content management API
-│   ├── image-composer.yaml  # Image generation API
-│   └── publisher.yaml    # Publishing and scheduling API
-├── prompts/              # AI prompt templates
+├── autogensocial_contracts/
+│   ├── models/           # Pydantic models (auto-generated)
+│   │   ├── brand.py      # Brand model
+│   │   ├── post.py       # Post model
+│   │   ├── postPlan.py   # PostPlan model
+│   │   └── socialAccount.py  # SocialAccount model
+│   ├── schemas/          # JSON Schema definitions
+│   │   ├── brand.json    # Brand configuration schema
+│   │   ├── postPlan.json # Content planning schema
+│   │   ├── post.json     # Social media post schema
+│   │   └── socialAccount.json  # Social account schema
+│   ├── openapi/          # OpenAPI 3.0 specifications
+│   │   ├── content-api.yaml    # Content management API
+│   │   ├── image-composer.yaml # Image generation API
+│   │   └── publisher.yaml      # Publishing API
+│   └── generators/       # Code generation utilities
+│       ├── crud_generator.py   # CRUD operation generator
+│       ├── client_generator.py # API client generator
+│       └── validator.py        # Schema/OpenAPI validator
+├── scripts/              # Utility scripts
+│   ├── generate_models.py      # Regenerate Pydantic models
+│   └── demo_generators.py      # Demo code generation
+├── tests/                # Test suite
 └── docs/                 # Additional documentation
 ```
 
@@ -35,9 +59,11 @@ The AutoGenSocial platform automates social media content creation, planning, an
 
 1. **Defines Data Models**: Standardizes how brands, content plans, and posts are structured
 2. **Specifies APIs**: Documents all service endpoints, request/response formats, and authentication
-3. **Enables Integration**: Provides clear contracts for clients and services to integrate with the platform
-4. **Facilitates Development**: Enables parallel development of frontend and backend services
-5. **Ensures Consistency**: Maintains data integrity across distributed microservices
+3. **Generates Boilerplate**: Auto-generates CRUD operations and API clients to speed up development
+4. **Validates Contracts**: Ensures schemas and APIs are consistent and follow best practices
+5. **Enables Integration**: Provides clear contracts for clients and services to integrate with the platform
+6. **Facilitates Development**: Enables parallel development of frontend and backend services
+7. **Ensures Consistency**: Maintains data integrity across distributed microservices
 
 ## 📊 Schemas
 
@@ -147,6 +173,74 @@ When introducing breaking changes:
 4. Provide migration guides in the `docs/` folder
 5. Tag the release in Git with the version number
 
+## 🚀 Code Generation
+
+The package includes powerful code generation utilities to accelerate development:
+
+### Generate CRUD Operations
+
+```python
+from autogensocial_contracts.generators import CRUDGenerator
+
+generator = CRUDGenerator()
+
+# Generate Python CRUD operations
+operations = generator.generate_all_operations("brand", output_format="python")
+print(operations['create'])  # async def create_brand(...)
+print(operations['read'])    # async def get_brand(...) + list_brands(...)
+print(operations['update'])  # async def update_brand(...)
+print(operations['delete'])  # async def delete_brand(...)
+
+# Generate TypeScript CRUD operations
+ts_ops = generator.generate_all_operations("post", output_format="typescript")
+
+# Generate SQL DDL
+sql = generator.generate_create_operation("brand", output_format="sql")
+```
+
+### Generate API Clients
+
+```python
+from autogensocial_contracts.generators import ClientGenerator
+
+generator = ClientGenerator()
+
+# Generate Python API client with async/await
+client_code = generator.generate_client("content-api", output_format="python")
+# Output: class ContentAPIClient with async methods
+
+# Generate TypeScript API client
+ts_client = generator.generate_client("publisher", output_format="typescript")
+# Output: export class PublisherAPIClient with async methods
+```
+
+### Validate Schemas and APIs
+
+```python
+from autogensocial_contracts.generators import SchemaValidator, OpenAPIValidator
+
+# Validate all schemas
+schema_validator = SchemaValidator()
+results = schema_validator.validate_all_schemas()
+
+# Validate all OpenAPI specs
+openapi_validator = OpenAPIValidator()
+results = openapi_validator.validate_all_specs()
+
+# Check schema consistency
+is_consistent, diffs = schema_validator.check_schema_consistency(
+    "brand", "post", "id"
+)
+```
+
+### Run the Demo
+
+```bash
+python3 scripts/demo_generators.py
+```
+
+This will demonstrate all code generation capabilities with actual output from your schemas and OpenAPI specs.
+
 ### Deprecation Policy
 
 Features marked for deprecation:
@@ -159,8 +253,28 @@ Features marked for deprecation:
 
 ### For API Consumers (Frontend/Client Applications)
 
-1. **Review OpenAPI Specs**: Browse the OpenAPI specifications in the `openapi/` directory
-2. **Generate Client SDKs**: Use tools like OpenAPI Generator to create client libraries
+1. **Install the Package**: Get type-safe models and utilities
+   ```bash
+   pip install autogensocial-contracts
+   ```
+
+2. **Use Pydantic Models**: Import and use the pre-built models
+   ```python
+   from autogensocial_contracts import Brand, Post, PostPlan
+   
+   brand = Brand(id="123", name="My Brand")
+   ```
+
+3. **Generate Client SDK**: Use the built-in client generator
+   ```python
+   from autogensocial_contracts.generators import ClientGenerator
+   
+   generator = ClientGenerator()
+   client_code = generator.generate_client("content-api", output_format="typescript")
+   # Save to file and use in your frontend application
+   ```
+
+4. **Alternatively, use OpenAPI Generator**: Traditional approach
    ```bash
    # Example: Generate TypeScript client for Content API
    openapi-generator-cli generate \
@@ -168,29 +282,96 @@ Features marked for deprecation:
      -g typescript-axios \
      -o ./generated/content-api-client
    ```
-3. **Validate Requests**: Use the schemas to validate your API requests before sending
-4. **Handle Responses**: Parse responses according to the defined schemas
+
+5. **Validate Requests**: Use Pydantic models to validate API requests
+   ```python
+   from autogensocial_contracts import Brand
+   from pydantic import ValidationError
+   
+   try:
+       brand = Brand(**request_data)
+   except ValidationError as e:
+       print("Invalid brand data:", e)
+   ```
 
 ### For API Providers (Backend Services)
 
-1. **Implement Endpoints**: Build services that conform to the OpenAPI specifications
-2. **Validate Data**: Use JSON schemas to validate incoming data
-   ```javascript
-   // Example: Validate brand data in Node.js
-   const Ajv = require('ajv');
-   const ajv = new Ajv();
-   const schema = require('./schemas/brand.json');
-   const validate = ajv.compile(schema);
-   const valid = validate(brandData);
+1. **Install the Package**: Get models and CRUD generators
+   ```bash
+   pip install autogensocial-contracts
    ```
-3. **Generate Server Stubs**: Use OpenAPI tools to generate server boilerplate
-4. **Auto-generate Documentation**: Tools like Swagger UI can render interactive API docs
+
+2. **Use Pydantic Models**: Leverage auto-generated models for validation
+   ```python
+   from autogensocial_contracts import Brand, Post
+   from pydantic import ValidationError
+   
+   # Automatically validates incoming data
+   brand = Brand(**request_json)
+   ```
+
+3. **Generate CRUD Operations**: Use built-in generators to create database operations
+   ```python
+   from autogensocial_contracts.generators import CRUDGenerator
+   
+   generator = CRUDGenerator()
+   
+   # Generate Python async CRUD operations for SQLAlchemy
+   crud_code = generator.generate_all_operations("brand", output_format="python")
+   
+   # Or generate SQL DDL
+   sql_ddl = generator.generate_create_operation("brand", output_format="sql")
+   ```
+
+4. **Validate Incoming Data**: Use the schema validator
+   ```python
+   from autogensocial_contracts.generators import SchemaValidator
+   
+   validator = SchemaValidator()
+   is_valid, issues = validator.validate_schema("brand")
+   ```
+
+5. **Auto-generate Documentation**: Use Swagger UI or ReDoc with OpenAPI specs
+   ```python
+   from autogensocial_contracts.openapi import load_openapi_spec
+   
+   spec = load_openapi_spec("content-api")
+   # Pass to FastAPI, Flask-RESTX, etc.
+   ```
 
 ### For Testing
 
-1. **Schema Validation**: Validate test data against JSON schemas
-2. **Contract Testing**: Ensure API responses match OpenAPI specifications
-3. **Mock Servers**: Generate mock servers from OpenAPI specs for testing
+1. **Use Pydantic Models**: Create test data easily
+   ```python
+   from autogensocial_contracts import Brand, Post
+   
+   test_brand = Brand(id="test-1", name="Test Brand")
+   test_post = Post(
+       id="post-1",
+       brandId="test-1",
+       platform="twitter",
+       content={"mainCopy": "Test post"},
+       status="draft"
+   )
+   ```
+
+2. **Schema Validation**: Validate test data against JSON schemas
+   ```python
+   from autogensocial_contracts.generators import SchemaValidator
+   
+   validator = SchemaValidator()
+   is_valid, issues = validator.validate_schema("brand")
+   ```
+
+3. **Contract Testing**: Ensure API responses match OpenAPI specifications
+   ```python
+   from autogensocial_contracts.generators import OpenAPIValidator
+   
+   validator = OpenAPIValidator()
+   is_valid, issues = validator.validate_spec("content-api")
+   ```
+
+4. **Mock Servers**: Generate mock servers from OpenAPI specs for testing
    ```bash
    # Example: Run a mock server with Prism
    prism mock openapi/content-api.yaml

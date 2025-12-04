@@ -101,8 +101,102 @@ python3 -m build
 python3 -m twine upload dist/*
 ```
 
+## Code Generation
+
+The package now includes powerful code generation utilities to help you build CRUD operations and API clients from your schemas.
+
+### Generating CRUD Operations
+
+```python
+from autogensocial_contracts.generators import CRUDGenerator
+
+# Initialize the generator
+generator = CRUDGenerator()
+
+# Generate Python CRUD operations
+operations = generator.generate_all_operations("brand", output_format="python")
+print(operations['create'])  # CREATE operation
+print(operations['read'])    # READ operation
+print(operations['update'])  # UPDATE operation
+print(operations['delete'])  # DELETE operation
+
+# Generate TypeScript CRUD operations
+ts_operations = generator.generate_all_operations("post", output_format="typescript")
+print(ts_operations['create'])
+
+# Generate SQL DDL
+sql_ddl = generator.generate_create_operation("brand", output_format="sql")
+print(sql_ddl)
+```
+
+### Generating API Clients
+
+```python
+from autogensocial_contracts.generators import ClientGenerator
+
+# Initialize the generator
+generator = ClientGenerator()
+
+# Generate Python API client
+python_client = generator.generate_client("content-api", output_format="python")
+print(python_client)
+
+# Generate TypeScript API client
+ts_client = generator.generate_client("publisher", output_format="typescript")
+print(ts_client)
+
+# Generate with custom class name
+custom_client = generator.generate_client(
+    "content-api",
+    output_format="python",
+    class_name="MyCustomAPIClient"
+)
+```
+
+### Validating Schemas and OpenAPI Specs
+
+```python
+from autogensocial_contracts.generators import SchemaValidator, OpenAPIValidator
+
+# Validate JSON schemas
+schema_validator = SchemaValidator()
+is_valid, issues = schema_validator.validate_schema("brand")
+if not is_valid:
+    print("Schema issues:", issues)
+
+# Validate all schemas
+results = schema_validator.validate_all_schemas()
+for schema_name, (is_valid, issues) in results.items():
+    print(f"{schema_name}: {'✓' if is_valid else '✗'}")
+
+# Check schema consistency
+is_consistent, differences = schema_validator.check_schema_consistency(
+    "brand", "post", "id"
+)
+
+# Validate OpenAPI specifications
+openapi_validator = OpenAPIValidator()
+is_valid, issues = openapi_validator.validate_spec("content-api")
+
+# Check schema references
+all_valid, invalid_refs = openapi_validator.check_schema_refs("content-api")
+```
+
+### Running the Demo
+
+See all code generation features in action:
+
+```bash
+python3 scripts/demo_generators.py
+```
+
 ## Package Structure
 
 - `autogensocial_contracts.models` - Pydantic models generated from JSON schemas
 - `autogensocial_contracts.schemas` - JSON schema utilities and files
 - `autogensocial_contracts.openapi` - OpenAPI specification utilities and files
+- `autogensocial_contracts.generators` - Code generation utilities
+  - `CRUDGenerator` - Generate CRUD operations from schemas
+  - `ClientGenerator` - Generate API clients from OpenAPI specs
+  - `SchemaValidator` - Validate JSON schemas
+  - `OpenAPIValidator` - Validate OpenAPI specifications
