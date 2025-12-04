@@ -1,0 +1,1377 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Content API",
+    "description": "API for managing social media content and post plans",
+    "version": "1.0.0",
+    "contact": {
+      "name": "AutoGenSocial Team"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://autogensocial-func-backend.azurewebsites.net/api/",
+      "description": "Azure Function App Backend"
+    }
+  ],
+  "security": [
+    {
+      "function_key": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "brands",
+      "description": "Brand management"
+    },
+    {
+      "name": "post-plans",
+      "description": "Post plan management"
+    },
+    {
+      "name": "posts",
+      "description": "Post management"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "function_key": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-functions-key"
+      }
+    },
+    "schemas": {
+      "Brand": {
+        "type": "object",
+        "description": "Schema for brand identity and guidelines",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the brand"
+          },
+          "name": {
+            "type": "string",
+            "description": "Brand name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Brand description"
+          },
+          "voice": {
+            "type": "object",
+            "description": "Brand voice and tone guidelines",
+            "properties": {
+              "tone": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "List of tone attributes (e.g., professional, friendly, casual)"
+              },
+              "style": {
+                "type": "string",
+                "description": "Writing style guidelines"
+              }
+            }
+          },
+          "visualStyles": {
+            "type": "object",
+            "description": "Visual styling guidelines for the brand",
+            "properties": {
+              "colors": {
+                "type": "object",
+                "description": "Brand color palette",
+                "properties": {
+                  "primary": {
+                    "type": "string",
+                    "description": "Primary brand color (hex)"
+                  },
+                  "secondary": {
+                    "type": "string",
+                    "description": "Secondary brand color (hex)"
+                  },
+                  "accent": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Accent colors (hex)"
+                  }
+                }
+              },
+              "fonts": {
+                "type": "object",
+                "description": "Typography guidelines for the brand",
+                "properties": {
+                  "heading": {
+                    "type": "object",
+                    "description": "Font settings for headings",
+                    "properties": {
+                      "family": {
+                        "type": "string",
+                        "description": "Font family name for headings"
+                      },
+                      "weight": {
+                        "type": "string",
+                        "description": "Font weight for headings (e.g., 'bold', '700')"
+                      },
+                      "style": {
+                        "type": "string",
+                        "description": "Font style for headings (e.g., 'normal', 'italic')"
+                      }
+                    }
+                  },
+                  "body": {
+                    "type": "object",
+                    "description": "Font settings for body text",
+                    "properties": {
+                      "family": {
+                        "type": "string",
+                        "description": "Font family name for body text"
+                      },
+                      "weight": {
+                        "type": "string",
+                        "description": "Font weight for body text (e.g., 'normal', '400')"
+                      },
+                      "style": {
+                        "type": "string",
+                        "description": "Font style for body text (e.g., 'normal', 'italic')"
+                      }
+                    }
+                  },
+                  "accent": {
+                    "type": "object",
+                    "description": "Font settings for accent/special text",
+                    "properties": {
+                      "family": {
+                        "type": "string",
+                        "description": "Font family name for accent text"
+                      },
+                      "weight": {
+                        "type": "string",
+                        "description": "Font weight for accent text"
+                      },
+                      "style": {
+                        "type": "string",
+                        "description": "Font style for accent text"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "socialAccounts": {
+            "type": "array",
+            "description": "Social media accounts associated with the brand",
+            "items": {
+              "$ref": "#/components/schemas/SocialAccount"
+            }
+          },
+          "logo": {
+            "type": "object",
+            "description": "Brand logo assets",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL to the logo image"
+              },
+              "variants": {
+                "type": "object",
+                "description": "Different logo variants (light, dark, etc.)"
+              }
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "PostPlan": {
+        "type": "object",
+        "description": "Schema for social media post planning",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the post plan"
+          },
+          "brandId": {
+            "type": "string",
+            "description": "Reference to the brand"
+          },
+          "title": {
+            "type": "string",
+            "description": "Post plan title"
+          },
+          "objective": {
+            "type": "string",
+            "description": "Marketing objective for this post plan"
+          },
+          "postType": {
+            "type": "string",
+            "enum": [
+              "images",
+              "video"
+            ],
+            "description": "Type of media content for the post"
+          },
+          "mediaContent": {
+            "type": "object",
+            "description": "Media content specifications",
+            "oneOf": [
+              {
+                "description": "Image-based post content",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "images"
+                    ]
+                  },
+                  "imageCount": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10,
+                    "description": "Number of images (1 for single image, multiple for carousel)"
+                  },
+                  "orientation": {
+                    "type": "string",
+                    "enum": [
+                      "portrait",
+                      "landscape",
+                      "square"
+                    ],
+                    "description": "Image orientation/aspect ratio for all images in this post"
+                  },
+                  "images": {
+                    "type": "array",
+                    "description": "Array of image specifications",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "description": {
+                          "type": "string",
+                          "description": "Description of the image content"
+                        },
+                        "layout": {
+                          "type": "string",
+                          "description": "Layout specification for the image"
+                        },
+                        "textOverlay": {
+                          "type": "object",
+                          "description": "Text or comment overlay specifications",
+                          "properties": {
+                            "content": {
+                              "type": "string",
+                              "description": "Text content to overlay"
+                            },
+                            "style": {
+                              "type": "string",
+                              "description": "Style specification for the text"
+                            },
+                            "position": {
+                              "type": "string",
+                              "description": "Position of text on the image"
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "description",
+                        "layout"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "type",
+                  "imageCount",
+                  "orientation",
+                  "images"
+                ]
+              },
+              {
+                "description": "Video-based post content",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "video"
+                    ]
+                  },
+                  "orientation": {
+                    "type": "string",
+                    "enum": [
+                      "portrait",
+                      "landscape",
+                      "square"
+                    ],
+                    "description": "Video orientation/aspect ratio"
+                  },
+                  "video": {
+                    "type": "object",
+                    "description": "Video specification",
+                    "properties": {
+                      "description": {
+                        "type": "string",
+                        "description": "Description of the video content"
+                      },
+                      "layout": {
+                        "type": "string",
+                        "description": "Layout specification for the video"
+                      },
+                      "textOverlay": {
+                        "type": "object",
+                        "description": "Text or comment overlay specifications",
+                        "properties": {
+                          "content": {
+                            "type": "string",
+                            "description": "Text content to overlay"
+                          },
+                          "style": {
+                            "type": "string",
+                            "description": "Style specification for the text"
+                          },
+                          "position": {
+                            "type": "string",
+                            "description": "Position of text on the video"
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "description",
+                      "layout"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "orientation",
+                  "video"
+                ]
+              }
+            ]
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "twitter",
+                "facebook",
+                "instagram",
+                "linkedin",
+                "tiktok"
+              ]
+            },
+            "description": "Target social media platforms"
+          },
+          "scheduling": {
+            "type": "object",
+            "description": "Post scheduling configuration",
+            "oneOf": [
+              {
+                "description": "One-time scheduled post",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "one-time"
+                    ]
+                  },
+                  "publishAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Specific date and time to publish"
+                  }
+                },
+                "required": [
+                  "type",
+                  "publishAt"
+                ]
+              },
+              {
+                "description": "Recurring scheduled post",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "recurring"
+                    ]
+                  },
+                  "frequency": {
+                    "type": "string",
+                    "enum": [
+                      "daily",
+                      "weekly",
+                      "monthly"
+                    ],
+                    "description": "How often to repeat"
+                  },
+                  "time": {
+                    "type": "string",
+                    "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$",
+                    "description": "Time of day in HH:MM format (24-hour)"
+                  },
+                  "dayOfWeek": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 6,
+                    "description": "Day of week (0=Sunday, 6=Saturday) - required for weekly frequency"
+                  },
+                  "dayOfMonth": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 31,
+                    "description": "Day of month - required for monthly frequency"
+                  },
+                  "startDate": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "When to start the recurring schedule"
+                  },
+                  "endDate": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "When to stop the recurring schedule (optional)"
+                  },
+                  "nextRunDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "The next scheduled execution time (updated after each run)"
+                  }
+                },
+                "required": [
+                  "type",
+                  "frequency",
+                  "time",
+                  "startDate"
+                ]
+              }
+            ]
+          },
+          "contentGuidelines": {
+            "type": "object",
+            "description": "Content creation guidelines",
+            "properties": {
+              "topics": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "keywords": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "tone": {
+                "type": "string"
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "approved",
+              "scheduled",
+              "published"
+            ],
+            "description": "Current status of the post plan"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "brandId",
+          "title",
+          "mediaContent",
+          "platforms",
+          "status"
+        ]
+      },
+      "Post": {
+        "type": "object",
+        "description": "Schema for a social media post",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the post"
+          },
+          "postPlanId": {
+            "type": "string",
+            "description": "Reference to the parent post plan"
+          },
+          "brandId": {
+            "type": "string",
+            "description": "Reference to the brand"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "twitter",
+              "facebook",
+              "instagram",
+              "linkedin",
+              "tiktok"
+            ],
+            "description": "Target social media platform"
+          },
+          "content": {
+            "type": "object",
+            "description": "Post content",
+            "properties": {
+              "mainCopy": {
+                "type": "string",
+                "description": "Main post text/caption"
+              },
+              "imageCaptions": {
+                "type": "array",
+                "description": "Individual captions for each image (for carousel posts)",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "imageIndex": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Index of the image this caption applies to"
+                    },
+                    "caption": {
+                      "type": "string",
+                      "description": "Caption text for this specific image"
+                    }
+                  },
+                  "required": [
+                    "imageIndex",
+                    "caption"
+                  ]
+                }
+              },
+              "comments": {
+                "type": "array",
+                "description": "Additional comments or supporting text",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "hashtags": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^#[a-zA-Z0-9_]+$"
+                },
+                "description": "Hashtags to include (with"
+              }
+            },
+            "required": [
+              "mainCopy"
+            ]
+          },
+          "media": {
+            "type": "array",
+            "description": "Media attachments",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "image",
+                    "video",
+                    "gif"
+                  ]
+                },
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "altText": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type",
+                "url"
+              ]
+            }
+          },
+          "scheduledTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Scheduled publication time"
+          },
+          "publishedTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Actual publication time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "scheduled",
+              "published",
+              "failed"
+            ],
+            "description": "Current status of the post"
+          },
+          "metrics": {
+            "type": "object",
+            "description": "Post performance metrics",
+            "properties": {
+              "impressions": {
+                "type": "integer"
+              },
+              "engagements": {
+                "type": "integer"
+              },
+              "likes": {
+                "type": "integer"
+              },
+              "shares": {
+                "type": "integer"
+              },
+              "comments": {
+                "type": "integer"
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "brandId",
+          "platform",
+          "content",
+          "status"
+        ]
+      },
+      "SocialAccount": {
+        "type": "object",
+        "description": "Social media account configuration and credentials",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "enum": [
+              "instagram",
+              "facebook",
+              "twitter",
+              "linkedin",
+              "tiktok",
+              "youtube"
+            ],
+            "description": "Social media platform name"
+          },
+          "handle": {
+            "type": "string",
+            "description": "Social media handle/username (without @ symbol)"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Display name for the account"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Direct URL to the social media profile"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether this account is actively used for posting",
+            "default": true
+          },
+          "postingPermissions": {
+            "type": "object",
+            "description": "Permissions and capabilities for this account",
+            "properties": {
+              "canPost": {
+                "type": "boolean",
+                "description": "Permission to create posts",
+                "default": false
+              },
+              "canSchedule": {
+                "type": "boolean",
+                "description": "Permission to schedule posts",
+                "default": false
+              },
+              "canDelete": {
+                "type": "boolean",
+                "description": "Permission to delete posts",
+                "default": false
+              }
+            }
+          }
+        },
+        "required": [
+          "platform",
+          "handle"
+        ]
+      },
+      "BrandPatch": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Brand"
+          }
+        ],
+        "description": "Schema for partial brand updates (all fields optional)",
+        "required": []
+      },
+      "PostPlanPatch": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PostPlan"
+          }
+        ],
+        "description": "Schema for partial post plan updates (all fields optional)",
+        "required": []
+      },
+      "PostPatch": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Post"
+          }
+        ],
+        "description": "Schema for partial post updates (all fields optional)",
+        "required": []
+      }
+    }
+  },
+  "paths": {
+    "/brands": {
+      "get": {
+        "tags": [
+          "brands"
+        ],
+        "summary": "List all brands",
+        "operationId": "listBrands",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Brand"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "brands"
+        ],
+        "summary": "Create a new brand",
+        "operationId": "createBrand",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Brand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Brand created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Brand"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/brands/{brandId}": {
+      "get": {
+        "tags": [
+          "brands"
+        ],
+        "summary": "Get a brand by ID",
+        "operationId": "getBrand",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Brand"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Brand not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "brands"
+        ],
+        "summary": "Update a brand (replace entire resource)",
+        "operationId": "updateBrand",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Brand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Brand updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Brand"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Brand not found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "brands"
+        ],
+        "summary": "Partially update a brand",
+        "operationId": "patchBrand",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrandPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Brand updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Brand"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Brand not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "brands"
+        ],
+        "summary": "Delete a brand",
+        "operationId": "deleteBrand",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Brand deleted successfully"
+          },
+          "404": {
+            "description": "Brand not found"
+          }
+        }
+      }
+    },
+    "/post-plans": {
+      "get": {
+        "tags": [
+          "post-plans"
+        ],
+        "summary": "List all post plans",
+        "operationId": "listPostPlans",
+        "parameters": [
+          {
+            "name": "brandId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by brand ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PostPlan"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "post-plans"
+        ],
+        "summary": "Create a new post plan",
+        "operationId": "createPostPlan",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostPlan"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Post plan created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostPlan"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/post-plans/{postPlanId}": {
+      "get": {
+        "tags": [
+          "post-plans"
+        ],
+        "summary": "Get a post plan by ID",
+        "operationId": "getPostPlan",
+        "parameters": [
+          {
+            "name": "postPlanId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostPlan"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post plan not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "post-plans"
+        ],
+        "summary": "Update a post plan (replace entire resource)",
+        "operationId": "updatePostPlan",
+        "parameters": [
+          {
+            "name": "postPlanId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostPlan"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Post plan updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostPlan"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post plan not found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "post-plans"
+        ],
+        "summary": "Partially update a post plan",
+        "operationId": "patchPostPlan",
+        "parameters": [
+          {
+            "name": "postPlanId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostPlanPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Post plan updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostPlan"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post plan not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "post-plans"
+        ],
+        "summary": "Delete a post plan",
+        "operationId": "deletePostPlan",
+        "parameters": [
+          {
+            "name": "postPlanId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Post plan deleted successfully"
+          },
+          "404": {
+            "description": "Post plan not found"
+          }
+        }
+      }
+    },
+    "/posts": {
+      "get": {
+        "tags": [
+          "posts"
+        ],
+        "summary": "List all posts",
+        "operationId": "listPosts",
+        "parameters": [
+          {
+            "name": "postPlanId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by post plan ID"
+          },
+          {
+            "name": "brandId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by brand ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Post"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "posts"
+        ],
+        "summary": "Create a new post",
+        "operationId": "createPost",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Post created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/posts/{postId}": {
+      "get": {
+        "tags": [
+          "posts"
+        ],
+        "summary": "Get a post by ID",
+        "operationId": "getPost",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "posts"
+        ],
+        "summary": "Update a post (replace entire resource)",
+        "operationId": "updatePost",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Post updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "posts"
+        ],
+        "summary": "Partially update a post",
+        "operationId": "patchPost",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Post updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "posts"
+        ],
+        "summary": "Delete a post",
+        "operationId": "deletePost",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Post deleted successfully"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        }
+      }
+    }
+  }
+}
